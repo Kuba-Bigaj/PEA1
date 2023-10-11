@@ -8,30 +8,16 @@
 
 class App {
 	//menu elements
-	std::string title = "MENU GŁÓWNE";
-	std::string credits = "Kuba Bigaj 2023";
-	std::string[3] options = { "ALgorytmy", "Dane", "Wyjście" };
+	std::string title = "MENU GŁÓWNE\n";
+	std::string credits = "Kuba Bigaj 2023\n";
+	std::string options[3] = { "Algorytmy", "Dane", "Wyjście" };
+	int chosen_option = 0;
+
+
 
 	//data
-	int** matrix=nullptr;
-
-	void load_random_data(int size)
-	{
-		if (!matrix)
-		{
-			delete matrix;
-		}
-
-		matrix = (int**) new int[size*size];
-
-		for (int i = 0; i < size; i++)
-		{
-			for (int j = 0; j < size; j++)
-			{
-				matrix[i][j] = rand() % 100 + 1;
-			}
-		}
-	}
+	int** matrix = nullptr;
+	int size = 0;
 
 	static int create_sub_menu(std::string top_banner, std::string options[], std::string bot_banner, int number, int def_option) // displays a submenu with options, returns the number chosen
 	{
@@ -48,7 +34,8 @@ class App {
 				}
 				std::cout << "\t" << options[i] << "\n";
 			}
-			switch (getch())
+			std::cout << bot_banner;
+			switch (_getch())
 			{
 			case 72:
 				chosen_option--;
@@ -65,27 +52,131 @@ class App {
 		}
 	}
 
+	static bool test_input_validity(std::string err_message)
+	{
+		if (std::cin.fail())
+		{
+			std::cout << err_message << "\n";
+			std::cin.clear();
+			std::cin.ignore(1000, '\n');
+			system("pause");
+			return false;
+		}
+		return true;
+	}
+
+
+	void generate_random_data(int in_size)
+	{
+		if (!matrix)
+		{
+			for (int i = 0; i < size; i++)
+			{
+				delete matrix[i];
+			}
+			delete matrix;
+		}
+
+		this->size = in_size;
+		matrix = new int*[size];
+
+		for (int i = 0; i < size; i++)
+		{
+			matrix[i] = new int[size];
+		}
+
+
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				matrix[i][j] = rand() % 100 + 1;
+			}
+		}
+	}
+
+	void show_data()
+	{
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				std::cout << matrix[i][j] << "\t";
+			}
+			std::cout << "\n";
+		}
+		system("pause");
+	}
+
+	void read_data_from_file(std::string filename);
+
+	void handle_algorithms()
+	{
+		return;
+	}
+
+	void handle_data()
+	{
+		std::string o[4] = { "Wczytaj dane", "Wygeneruj dane", "Wyświetl dane", "Wróć" };
+		int ch_o = 0;
+
+		while (true) {
+			ch_o = create_sub_menu("", o, "", 4, ch_o);
+			switch (ch_o)
+			{
+			case 0:
+				//TODO file read
+				break;
+			case 1:
+				int rozmiar;
+				std::cout << "Podaj rozmiar danych do wygenerowania:\n";
+				std::cin >> rozmiar;
+				if (test_input_validity("Błędne dane!\n"))
+				{
+					generate_random_data(rozmiar);
+					std::cout << "Wygenerowane dane: \n";
+					show_data();
+				}
+				break;
+			case 2:
+				show_data();
+				break;
+			case 3:
+				return;
+			default:
+				break;
+			}
+		}
+	}
+
+
 public:
 	void run()
 	{
-		create_sub_menu(title, options, credits, 3, 0);
+		while (true)
+		{
+			chosen_option = create_sub_menu(title, options, credits, 3, chosen_option);
+
+			switch (chosen_option)
+			{
+			case 0:
+				break;
+			case 1:
+				handle_data();
+				break;
+			case 2:
+				return;
+			default:
+				break;
+			}
+		}
 	}
 };
 
 
 int main()
 {
-
-	std::cout << "Hello World!\n";
+	App a;
+	a.run();
+	std::cout << "Owari da.\n";
 }
-
-// Uruchomienie programu: Ctrl + F5 lub menu Debugowanie > Uruchom bez debugowania
-// Debugowanie programu: F5 lub menu Debugowanie > Rozpocznij debugowanie
-
-// Porady dotyczące rozpoczynania pracy:
-//   1. Użyj okna Eksploratora rozwiązań, aby dodać pliki i zarządzać nimi
-//   2. Użyj okna programu Team Explorer, aby nawiązać połączenie z kontrolą źródła
-//   3. Użyj okna Dane wyjściowe, aby sprawdzić dane wyjściowe kompilacji i inne komunikaty
-//   4. Użyj okna Lista błędów, aby zobaczyć błędy
-//   5. Wybierz pozycję Projekt > Dodaj nowy element, aby utworzyć nowe pliki kodu, lub wybierz pozycję Projekt > Dodaj istniejący element, aby dodać istniejące pliku kodu do projektu
-//   6. Aby w przyszłości ponownie otworzyć ten projekt, przejdź do pozycji Plik > Otwórz > Projekt i wybierz plik sln
