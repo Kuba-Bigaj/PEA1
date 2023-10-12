@@ -2,6 +2,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <conio.h>
 
@@ -65,25 +66,36 @@ class App {
 		return true;
 	}
 
+	void dealloc_matrix() //deallocates the matrix, sets size to 0
+	{
+		size = 0;
+		if (!matrix)
+		{
+			return;
+		}
+		for (int i = 0; i < size; i++)
+		{
+			delete matrix[i];
+		}
+		delete matrix;
+		matrix = nullptr;
+	}
+
+	void alloc_matrix(int s) //allocates the matrix
+	{
+		size = s;
+		matrix = new int*[s];
+		for (int i = 0; i < s; i++)
+		{
+			matrix[i] = new int[s];
+		}
+	}
 
 	void generate_random_data(int in_size)
 	{
-		if (!matrix)
-		{
-			for (int i = 0; i < size; i++)
-			{
-				delete matrix[i];
-			}
-			delete matrix;
-		}
 
-		this->size = in_size;
-		matrix = new int*[size];
-
-		for (int i = 0; i < size; i++)
-		{
-			matrix[i] = new int[size];
-		}
+		dealloc_matrix();
+		alloc_matrix(in_size);
 
 
 		for (int i = 0; i < size; i++)
@@ -108,7 +120,49 @@ class App {
 		system("pause");
 	}
 
-	void read_data_from_file(std::string filename);
+	void read_data_from_file(std::string filename)
+	{
+		std::ifstream file(filename);
+
+		if (!file.is_open())
+		{
+			std::cout << "Błąd otwarcia pliku!\n";
+			system("pause");
+			return;
+		}
+
+		int f_size;
+		file >> f_size;
+
+		if (file.fail())
+		{
+			std::cout << "Błąd odczytu rozmiaru\n";
+			file.close();
+			system("pause");
+			return;
+		}
+
+		dealloc_matrix();
+		alloc_matrix(f_size);
+
+		int val;
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				file >> val;
+				if (file.fail())
+				{
+					std::cout << "Błą odczytu danych!\n";
+					break;
+				}
+				else
+					matrix[i][j] = val;
+			}
+		}
+		file.close();
+		return;
+	}
 
 	void handle_algorithms()
 	{
@@ -119,16 +173,24 @@ class App {
 	{
 		std::string o[4] = { "Wczytaj dane", "Wygeneruj dane", "Wyświetl dane", "Wróć" };
 		int ch_o = 0;
+		std::string filename;
+		int rozmiar;
 
 		while (true) {
 			ch_o = create_sub_menu("", o, "", 4, ch_o);
 			switch (ch_o)
 			{
 			case 0:
-				//TODO file read
+				std::cout << "Podaj nazwę pliku z danymi:\n";
+				std::cin >> filename;
+				if (test_input_validity("Błędna nazwa!\n"))
+				{
+					read_data_from_file(filename);
+					std::cout << "Wczytane dane: \n";
+					show_data();
+				}
 				break;
 			case 1:
-				int rozmiar;
 				std::cout << "Podaj rozmiar danych do wygenerowania:\n";
 				std::cin >> rozmiar;
 				if (test_input_validity("Błędne dane!\n"))
