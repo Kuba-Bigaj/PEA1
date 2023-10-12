@@ -1,25 +1,15 @@
-﻿// PEA1.cpp : Ten plik zawiera funkcję „main”. W nim rozpoczyna się i kończy wykonywanie programu.
-//
-
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
 #include <conio.h>
 
 
 class App {
-	//menu elements
-	std::string title = "MENU GŁÓWNE\n";
-	std::string credits = "Kuba Bigaj 2023\n";
-	std::string options[3] = { "Algorytmy", "Dane", "Wyjście" };
-	int chosen_option = 0;
-
-
-
-	//data
+	//data storage
 	int** matrix = nullptr;
 	int size = 0;
 
+	//static UI helper functions
 	static int create_sub_menu(std::string top_banner, std::string options[], std::string bot_banner, int number, int def_option) // displays a submenu with options, returns the number chosen
 	{
 		int chosen_option = def_option;
@@ -66,11 +56,12 @@ class App {
 		return true;
 	}
 
+	//data manipulation functions
 	void dealloc_matrix() //deallocates the matrix, sets size to 0
 	{
-		size = 0;
 		if (!matrix)
 		{
+			size = 0;
 			return;
 		}
 		for (int i = 0; i < size; i++)
@@ -79,6 +70,7 @@ class App {
 		}
 		delete matrix;
 		matrix = nullptr;
+		size = 0;
 	}
 
 	void alloc_matrix(int s) //allocates the matrix
@@ -91,12 +83,10 @@ class App {
 		}
 	}
 
-	void generate_random_data(int in_size)
+	void generate_random_data(int in_size) //allocates and fills the matrix with random numbers in range <1, 100>
 	{
-
 		dealloc_matrix();
 		alloc_matrix(in_size);
-
 
 		for (int i = 0; i < size; i++)
 		{
@@ -126,7 +116,7 @@ class App {
 
 		if (!file.is_open())
 		{
-			std::cout << "Błąd otwarcia pliku!\n";
+			std::cout << "File open error!\n";
 			system("pause");
 			return;
 		}
@@ -136,7 +126,7 @@ class App {
 
 		if (file.fail())
 		{
-			std::cout << "Błąd odczytu rozmiaru\n";
+			std::cout << "Size read error!\n";
 			file.close();
 			system("pause");
 			return;
@@ -153,7 +143,7 @@ class App {
 				file >> val;
 				if (file.fail())
 				{
-					std::cout << "Błą odczytu danych!\n";
+					std::cout << "Data read error!\n";
 					break;
 				}
 				else
@@ -164,39 +154,42 @@ class App {
 		return;
 	}
 
+	//UI logic functions
 	void handle_algorithms()
 	{
+		std::string options[3] = {"Brute force", "Branch and bound", "Back"};
+
 		return;
 	}
 
 	void handle_data()
 	{
-		std::string o[4] = { "Wczytaj dane", "Wygeneruj dane", "Wyświetl dane", "Wróć" };
-		int ch_o = 0;
+		std::string options[4] = { "Load data", "Generate data", "Show current data", "Back" };
+		int chosen_option = 0;
 		std::string filename;
 		int rozmiar;
 
 		while (true) {
-			ch_o = create_sub_menu("", o, "", 4, ch_o);
-			switch (ch_o)
+			chosen_option = create_sub_menu("", options, "", 4, chosen_option);
+			switch (chosen_option)
 			{
 			case 0:
-				std::cout << "Podaj nazwę pliku z danymi:\n";
+				std::cout << "Enter filename:\n";
 				std::cin >> filename;
-				if (test_input_validity("Błędna nazwa!\n"))
+				if (test_input_validity("unsupported filename!\n"))
 				{
 					read_data_from_file(filename);
-					std::cout << "Wczytane dane: \n";
+					std::cout << "Loaded data: \n";
 					show_data();
 				}
 				break;
 			case 1:
-				std::cout << "Podaj rozmiar danych do wygenerowania:\n";
+				std::cout << "Enter data size:\n";
 				std::cin >> rozmiar;
-				if (test_input_validity("Błędne dane!\n"))
+				if (test_input_validity("Incorrect data size!\n"))
 				{
 					generate_random_data(rozmiar);
-					std::cout << "Wygenerowane dane: \n";
+					std::cout << "Generated data: \n";
 					show_data();
 				}
 				break;
@@ -215,6 +208,11 @@ class App {
 public:
 	void run()
 	{
+		std::string title = "MAIN MENU\n";
+		std::string credits = "Kuba Bigaj 2023\n";
+		std::string options[3] = { "Algorithms", "Data", "Exit" };
+		int chosen_option = 0;
+
 		while (true)
 		{
 			chosen_option = create_sub_menu(title, options, credits, 3, chosen_option);
@@ -233,6 +231,11 @@ public:
 			}
 		}
 	}
+	void debug()
+	{
+		generate_random_data(5);
+
+	}
 };
 
 
@@ -240,5 +243,4 @@ int main()
 {
 	App a;
 	a.run();
-	std::cout << "Owari da.\n";
 }
