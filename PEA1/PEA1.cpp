@@ -2,7 +2,14 @@
 #include <fstream>
 #include <string>
 #include <conio.h>
+#include <chrono>
+#include "dynamic_array.h"
 
+struct strint
+{
+	std::string str;
+	int num;
+};
 
 class App {
 	//data storage
@@ -92,7 +99,7 @@ class App {
 		{
 			for (int j = 0; j < size; j++)
 			{
-				matrix[i][j] = rand() % 100 + 1;
+				matrix[i][j] = i!=j ? rand() % 100 + 1 : -1;
 			}
 		}
 	}
@@ -154,10 +161,84 @@ class App {
 		return;
 	}
 
+	//algorithms
+	void brute_force()
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+		int min_path = INT_MAX;
+		dynamic_array cities;
+
+		for (int i = 1; i < size; i++)
+		{
+			cities.push(i - 1, i);
+		}
+
+		strint results = brute_check(0, 0, &cities, "");
+		auto stop = std::chrono::high_resolution_clock::now();
+
+
+		std::cout << "Min path = " << results.str << "\n";
+		std::cout << "Value = " << results.num << "\n";
+		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count() << "us\n";
+
+		system("pause");
+	}
+
+	strint brute_check(int who, int acc_value, dynamic_array* vert_to_check, std::string path) //returns the shortest complete path found from this city
+	{
+		int checked;
+		strint current_best, child_result;
+		current_best.num = INT_MAX;
+		current_best.str = "";
+
+		path += " -> " + std::to_string(who);
+
+		if (vert_to_check->get_size() == 0)
+		{
+			acc_value += matrix[who][0];
+			current_best.str = path;
+			current_best.num = acc_value;
+			return current_best;
+		}
+
+		for (int i = 0; i < vert_to_check->get_size(); i++)
+		{
+			checked = *vert_to_check->get(i);
+			vert_to_check->pop(i);
+			acc_value += matrix[who][checked];
+			child_result = brute_check(checked, acc_value, vert_to_check, path);
+			vert_to_check->push(i, checked);
+			if (child_result.num < current_best.num)
+			{
+				current_best.num = child_result.num;
+				current_best.str = child_result.str;
+			}
+		}
+		return current_best;
+	}
+
 	//UI logic functions
 	void handle_algorithms()
 	{
-		std::string options[3] = {"Brute force", "Branch and bound", "Back"};
+		std::string options[3] = { "Brute force", "Branch and bound", "Back" };
+		int chosen_option = 0;
+		while (true)
+		{
+			chosen_option = create_sub_menu("", options, "", 3, chosen_option);
+			switch (chosen_option)
+			{
+			case 0:
+				brute_force();
+				break;
+			case 1:
+				break;
+			case 2:
+				return;
+			default:
+				break;
+			}
+		}
+
 
 		return;
 	}
@@ -220,6 +301,7 @@ public:
 			switch (chosen_option)
 			{
 			case 0:
+				handle_algorithms();
 				break;
 			case 1:
 				handle_data();
@@ -233,8 +315,9 @@ public:
 	}
 	void debug()
 	{
-		generate_random_data(5);
-
+		read_data_from_file("data4.txt");
+		show_data();
+		brute_force();
 	}
 };
 
