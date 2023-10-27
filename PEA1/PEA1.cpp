@@ -3,7 +3,6 @@
 #include <string>
 #include <conio.h>
 #include <chrono>
-#include "dynamic_array.h"
 
 struct strint
 {
@@ -172,6 +171,32 @@ class App {
 		return;
 	}
 
+	void load_data()
+	{
+		std::string filename;
+		std::cout << "Enter filename:\n";
+		std::cin >> filename;
+		if (test_input_validity("unsupported filename!\n"))
+		{
+			read_data_from_file(filename);
+			std::cout << "Loaded data: \n";
+			show_data();
+		}
+	}
+
+	void generate_data()
+	{
+		int rozmiar;
+		std::cout << "Enter data size:\n";
+		std::cin >> rozmiar;
+		if (test_input_validity("Incorrect data size!\n"))
+		{
+			generate_random_data(rozmiar);
+			std::cout << "Generated data: \n";
+			show_data();
+		}
+	}
+
 	//algorithms
 	void brute_force()
 	{
@@ -293,97 +318,40 @@ class App {
 		return res;
 	}
 
-	//UI logic functions
-	void handle_algorithms()
-	{
-		std::string options[3] = { "Brute force", "Branch and bound", "Back" };
-		int chosen_option = 0;
-		while (true)
-		{
-			chosen_option = create_sub_menu("", options, "", 3, chosen_option);
-			switch (chosen_option)
-			{
-			case 0:
-				brute_force();
-				break;
-			case 1:
-				branch_and_bound();
-				break;
-			case 2:
-				return;
-			default:
-				break;
-			}
-		}
-
-
-		return;
-	}
-
-	void handle_data()
-	{
-		std::string options[4] = { "Load data", "Generate data", "Show current data", "Back" };
-		int chosen_option = 0;
-		std::string filename;
-		int rozmiar;
-
-		while (true) {
-			chosen_option = create_sub_menu("", options, "", 4, chosen_option);
-			switch (chosen_option)
-			{
-			case 0:
-				std::cout << "Enter filename:\n";
-				std::cin >> filename;
-				if (test_input_validity("unsupported filename!\n"))
-				{
-					read_data_from_file(filename);
-					std::cout << "Loaded data: \n";
-					show_data();
-				}
-				break;
-			case 1:
-				std::cout << "Enter data size:\n";
-				std::cin >> rozmiar;
-				if (test_input_validity("Incorrect data size!\n"))
-				{
-					generate_random_data(rozmiar);
-					std::cout << "Generated data: \n";
-					show_data();
-				}
-				break;
-			case 2:
-				show_data();
-				break;
-			case 3:
-				return;
-			default:
-				break;
-			}
-		}
-	}
-
-
 public:
 	void run()
 	{
 		std::string title = "MAIN MENU\n";
 		std::string credits = "Kuba Bigaj 2023\n";
-		std::string options[3] = { "Algorithms", "Data", "Exit" };
+		std::string options[7] = { "Load data", "Generate data", "Show current data", "Brute force", "Branch and bound","Dynamic programming", "Exit" };
 		int chosen_option = 0;
 
 		while (true)
 		{
-			chosen_option = create_sub_menu(title, options, credits, 3, chosen_option);
+			chosen_option = create_sub_menu(title, options, credits, 7, chosen_option);
 
 			switch (chosen_option)
 			{
 			case 0:
-				handle_algorithms();
+				load_data();
 				break;
 			case 1:
-				handle_data();
+				generate_data();
 				break;
 			case 2:
+				show_data();
+				break;
+			case 3:
+				brute_force();
+				break;
+			case 4:
+				branch_and_bound();
+				break;
+			case 5:
+				std::cout << "Unsupported operation!\n";
+				system("pause");
+				break;
+			case 6:
 				return;
 			default:
 				break;
