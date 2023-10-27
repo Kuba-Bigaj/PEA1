@@ -9,6 +9,17 @@ struct strint
 {
 	std::string str;
 	int num;
+
+	strint(std::string ins, int inn)
+	{
+		str = ins;
+		num = inn;
+	}
+
+	strint()
+	{
+		strint("", 0);
+	}
 };
 
 class App {
@@ -164,156 +175,122 @@ class App {
 	//algorithms
 	void brute_force()
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-		int min_path = INT_MAX;
-		dynamic_array cities;
-
-		for (int i = 1; i < size; i++)
+		bool* vis = new bool[size];
+		for (int i = 0; i < size; i++)
 		{
-			cities.push(i - 1, i);
+			vis[i] = false;
 		}
-
-		strint results = brute_check(0, 0, &cities, "");
+		auto start = std::chrono::high_resolution_clock::now();
+		strint res = brute_step(0, vis, "", 0, strint("", INT_MAX));
 		auto stop = std::chrono::high_resolution_clock::now();
+		delete vis;
 
-
-		std::cout << "Min path = " << results.str << "\n";
-		std::cout << "Value = " << results.num << "\n";
-		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << "us\n";
+		std::cout << "Min path = " << res.str << "\n";
+		std::cout << "Value = " << res.num << "\n";
+		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n";
 
 		system("pause");
 	}
 
-	strint brute_check(int who, int acc_value, dynamic_array* vert_to_check, std::string path_so_far) //returns the shortest complete path found from this city
+	strint brute_step(int cur_vert, bool* &vis, std::string path, int cur_distance, strint cur_best)
 	{
-		int child_node, child_acc_value;
-		strint current_best, child_result;
-		current_best.num = INT_MAX;
-		current_best.str = "";
+		bool is_last = true;
+		vis[cur_vert] = true;
 
-		path_so_far += " -> " + std::to_string(who);
+		path += " => " + std::to_string(cur_vert);
 
-		if (vert_to_check->get_size() == 0)
+		for (int i = 0; i < size; i++)
 		{
-			acc_value += matrix[who][0];
-			current_best.str = path_so_far;
-			current_best.num = acc_value;
-			return current_best;
-		}
-
-		for (int i = 0; i < vert_to_check->get_size(); i++)
-		{
-			child_node = *vert_to_check->get(i);
-			vert_to_check->pop(i);
-
-			child_acc_value = acc_value + matrix[who][child_node];
-			child_result = brute_check(child_node, child_acc_value, vert_to_check, path_so_far);
-			vert_to_check->push(i, child_node);
-			if (child_result.num < current_best.num)
+			if (vis[i])
+				continue;
+			is_last = false;
+			strint res = brute_step(i, vis, path, cur_distance + matrix[cur_vert][i], cur_best);
+			if (res.num < cur_best.num)
 			{
-				current_best.num = child_result.num;
-				current_best.str = child_result.str;
+				cur_best = res;
 			}
 		}
-		return current_best;
+
+		vis[cur_vert] = false;
+
+		if (is_last)
+		{
+			return strint(path, cur_distance + matrix[cur_vert][0]);
+		}
+
+		return cur_best;
 	}
 
 	void branch_and_bound()
 	{
-		auto start = std::chrono::high_resolution_clock::now();
-		int min_path = INT_MAX;
-		dynamic_array cities;
-
-		for (int i = 1; i < size; i++)
+		bool* vis = new bool[size];
+		for (int i = 0; i < size; i++)
 		{
-			cities.push(i - 1, i);
+			vis[i] = false;
 		}
-
-		strint results = branch_check(0, 0, &cities, "");
+		auto start = std::chrono::high_resolution_clock::now();
+		strint res = branch_step(0, vis, "", 0, strint("", INT_MAX));
 		auto stop = std::chrono::high_resolution_clock::now();
+		delete vis;
 
-
-		std::cout << "Min path = " << results.str << "\n";
-		std::cout << "Value = " << results.num << "\n";
-		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << "us\n";
+		std::cout << "Min path = " << res.str << "\n";
+		std::cout << "Value = " << res.num << "\n";
+		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n";
 
 		system("pause");
 	}
 
-	strint branch_check(int who, int acc_value, dynamic_array* vert_to_check, std::string path_so_far)
+	strint branch_step(int cur_vert, bool* &vis, std::string path, int cur_distance, strint cur_best)
 	{
-		int child_node, child_acc_value;
-		strint current_best, child_result;
-		current_best.num = INT_MAX;
-		current_best.str = "";
+		bool is_last = true;
+		vis[cur_vert] = true;
 
-		path_so_far += " -> " + std::to_string(who);
+		path += " => " + std::to_string(cur_vert);
 
-		if (vert_to_check->get_size() == 0)
+		for (int i = 0; i < size; i++)
 		{
-			acc_value += matrix[who][0];
-			current_best.str = path_so_far;
-			current_best.num = acc_value;
-			return current_best;
-		}
-
-		for (int i = 0; i < vert_to_check->get_size(); i++)
-		{
-			child_node = *vert_to_check->get(i);
-			vert_to_check->pop(i);
-
-			child_acc_value = acc_value + matrix[who][child_node];
-
-			int bound_value = bind_branch(vert_to_check, child_node);
-			//std::cout << "In branch " << path_so_far << " -> " << child_node << "\nCost so far: " << child_acc_value << "\nBound value: " << bound_value << "\n";
-			if (child_acc_value + bound_value > current_best.num)
-			{
-				vert_to_check->push(i, child_node);
+			if (vis[i])
 				continue;
-			}
-			child_result = branch_check(child_node, child_acc_value, vert_to_check, path_so_far);
+			is_last = false;
 
-			vert_to_check->push(i, child_node);
-			if (child_result.num < current_best.num)
+			if (bind_branch(vis) + cur_distance + matrix[cur_vert][i] > cur_best.num)
+				continue;
+
+			strint res = branch_step(i, vis, path, cur_distance + matrix[cur_vert][i], cur_best);
+			if (res.num < cur_best.num)
 			{
-				current_best.num = child_result.num;
-				current_best.str = child_result.str;
+				cur_best = res;
 			}
 		}
-		return current_best;
+
+		vis[cur_vert] = false;
+
+		if (is_last)
+		{
+			return strint(path, cur_distance + matrix[cur_vert][0]);
+		}
+
+		return cur_best;
 	}
 
-	int bind_branch(dynamic_array* sub_graph, int start_vertex)
+	int bind_branch(bool* vis)
 	{
-
-
-		int min = INT_MAX, checked_end, checked_start, val, result = 0;
-
-		for (int i = 0; i < sub_graph->get_size(); i++)// for every point in subgraph...
+		int res = 0;
+		for (int i = 0; i < size; i++)
 		{
-			checked_end = *sub_graph->get(i);
-			for (int j = 0; j < sub_graph->get_size(); j++) //... check for the smallest connection up to that point from within the subgraph...
+			if (vis[i])
+				continue;
+			int min = matrix[i][0];
+			for (int j = 1; j < size; j++)
 			{
-				checked_start = *sub_graph->get(j);
-				if (checked_end != checked_start)
-					min = matrix[checked_start][checked_end] < min ? matrix[checked_start][checked_end] : min;
-
+				if (vis[j])
+					continue;
+				min = min > matrix[i][j] ? matrix[i][j] : min;
 			}
 
-			min = matrix[start_vertex][checked_end] < min ? matrix[start_vertex][checked_end] : min; //... and from the start of the subgraph ...
-
-			result += min;
+			res += min;
 		}
-
-		for (int j = 0; j < sub_graph->get_size(); j++) //... repeat the procedure for the end of the path
-		{
-			checked_start = *sub_graph->get(j);
-			min = matrix[checked_start][0] < min ? matrix[checked_start][0] : min;
-
-		}
-
-		result += min;
-		return result;
+		return res;
 	}
 
 	//UI logic functions
@@ -415,7 +392,7 @@ public:
 	}
 	void debug()
 	{
-		generate_random_data(5);
+		generate_random_data(12);
 		show_data();
 		brute_force();
 		branch_and_bound();
