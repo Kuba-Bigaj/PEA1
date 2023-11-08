@@ -3,6 +3,7 @@
 #include <string>
 #include <conio.h>
 #include <chrono>
+#include <bitset>
 
 struct strint
 {
@@ -200,17 +201,27 @@ class App {
 	//algorithms
 	void brute_force()
 	{
+		if (!matrix)
+			return;
+
 		bool* vis = new bool[size];
+		
 		for (int i = 0; i < size; i++)
 		{
 			vis[i] = false;
 		}
+		
 		auto start = std::chrono::high_resolution_clock::now();
+		
 		strint res = brute_step(0, vis, "", 0, strint("", INT_MAX));
+		
 		auto stop = std::chrono::high_resolution_clock::now();
+		
 		delete vis;
+		
+		res.str.erase(0, 4);
 
-		std::cout << "Min path = " << res.str << "\n";
+		std::cout << "Min path: " << res.str << "\n";
 		std::cout << "Value = " << res.num << "\n";
 		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n";
 
@@ -248,17 +259,26 @@ class App {
 
 	void branch_and_bound()
 	{
+		if (!matrix)
+			return;
+
 		bool* vis = new bool[size];
 		for (int i = 0; i < size; i++)
 		{
 			vis[i] = false;
 		}
+		
 		auto start = std::chrono::high_resolution_clock::now();
+		
 		strint res = branch_step(0, vis, "", 0, strint("", INT_MAX));
+		
 		auto stop = std::chrono::high_resolution_clock::now();
+		
 		delete vis;
 
-		std::cout << "Min path = " << res.str << "\n";
+		res.str.erase(0, 4);
+
+		std::cout << "Min path: " << res.str << "\n";
 		std::cout << "Value = " << res.num << "\n";
 		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n";
 
@@ -318,6 +338,104 @@ class App {
 		return res;
 	}
 
+	void dynamic_programming()
+	{
+		if (!matrix)
+			return;
+
+		int** dp_tab = new int*[size];
+		unsigned char** dp_traceback_tab = new unsigned char*[size];
+
+		strint result;
+
+		int num_of_masks = 1 << size;
+
+		for (int i = 0; i < size; i++)
+		{
+			dp_tab[i] = new int[num_of_masks];
+			dp_traceback_tab[i] = new unsigned char[num_of_masks];
+
+			for (int j = 0; j < num_of_masks; j++)
+			{
+				dp_tab[i][j] = -1;
+				dp_traceback_tab[i][j] = UCHAR_MAX;
+			}
+		}
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		result.num = dp_step(0x1, 0, dp_tab, dp_traceback_tab);
+
+		auto stop = std::chrono::high_resolution_clock::now();
+
+		dp_trace_path(result.str, dp_traceback_tab);
+
+
+
+		std::cout << "Min path: " << result.str << "\n";
+		std::cout << "Value = " << result.num << "\n";
+		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n\n";
+
+		for (int i = 0; i < size; i++)
+		{
+			delete dp_tab[i];
+			delete dp_traceback_tab[i];
+		}
+		delete dp_tab;
+		delete dp_traceback_tab;
+
+		system("pause");
+	}
+
+	int dp_step(unsigned int cur_mask, int cur_vert, int** dp_tab, unsigned char** dp_traceback_tab)
+	{
+		if (cur_mask == (1 << size) - 1) //if all the cities were visited...
+		{
+			return matrix[cur_vert][0]; //...return the distance to the end (0th city) 
+		}
+
+		if (dp_tab[cur_vert][cur_mask] != -1) //if we already know the answer...
+		{
+			return dp_tab[cur_vert][cur_mask]; //...return it
+		}
+
+		int result = INT_MAX, prev_vertex;
+
+		for (int i = 0; i < size; i++)
+		{
+			if ((cur_mask & (1 << i)) == 0) //if the city has not been visited...
+			{
+				int val = matrix[cur_vert][i] + dp_step(cur_mask | (1 << i), i, dp_tab, dp_traceback_tab); //...calculate the shortest distance to it...
+				if (result > val)
+				{
+					result = val; //...and check wether it is the shortest path to the current city
+					prev_vertex = i;
+				}
+			}
+		}
+
+		dp_tab[cur_vert][cur_mask] = result;
+		dp_traceback_tab[cur_vert][cur_mask] = prev_vertex;
+
+
+		return result;
+	}
+
+	void dp_trace_path(std::string&  path_so_far, unsigned char** dp_traceback_tab)
+	{
+		unsigned int mask = 0x1, final_mask = (1 << size) - 1;
+		int current_vertex = 0;
+		path_so_far += "0";
+		while (mask != final_mask)
+		{
+			current_vertex = dp_traceback_tab[current_vertex][mask];
+			mask = mask | (1 << current_vertex);
+			path_so_far += " => " + std::to_string(current_vertex);
+		}
+
+	}
+
+
 public:
 	void run()
 	{
@@ -348,8 +466,7 @@ public:
 				branch_and_bound();
 				break;
 			case 5:
-				std::cout << "Unsupported operation!\n";
-				system("pause");
+				dynamic_programming();
 				break;
 			case 6:
 				return;
@@ -360,10 +477,9 @@ public:
 	}
 	void debug()
 	{
-		generate_random_data(12);
-		show_data();
-		brute_force();
+		read_data_from_file("data4.txt");
 		branch_and_bound();
+		dynamic_programming();
 	}
 };
 
