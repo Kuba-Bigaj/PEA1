@@ -561,7 +561,7 @@ public:
 	void run_tests()
 	{
 		std::chrono::duration<double, std::milli> results[100];
-		
+
 		std::ofstream brute_res("brute_force.csv");
 		brute_res.imbue(std::locale("pl_PL.UTF8"));
 		brute_res.close();
@@ -642,8 +642,18 @@ public:
 };
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	App a;
+
+	if (argc > 1)
+	{
+		if (strcmp(argv[1], "-t") == 0)
+		{
+			a.run_tests();
+			return 0;
+		}
+	}
 	a.run();
+	return 0;
 }
