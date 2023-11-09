@@ -205,20 +205,20 @@ class App {
 			return;
 
 		bool* vis = new bool[size];
-		
+
 		for (int i = 0; i < size; i++)
 		{
 			vis[i] = false;
 		}
-		
+
 		auto start = std::chrono::high_resolution_clock::now();
-		
+
 		strint res = brute_step(0, vis, "", 0, strint("", INT_MAX));
-		
+
 		auto stop = std::chrono::high_resolution_clock::now();
-		
+
 		delete vis;
-		
+
 		res.str.erase(0, 4);
 
 		std::cout << "Min path: " << res.str << "\n";
@@ -267,13 +267,13 @@ class App {
 		{
 			vis[i] = false;
 		}
-		
+
 		auto start = std::chrono::high_resolution_clock::now();
-		
+
 		strint res = branch_step(0, vis, "", 0, strint("", INT_MAX));
-		
+
 		auto stop = std::chrono::high_resolution_clock::now();
-		
+
 		delete vis;
 
 		res.str.erase(0, 4);
@@ -370,12 +370,6 @@ class App {
 
 		dp_trace_path(result.str, dp_traceback_tab);
 
-
-
-		std::cout << "Min path: " << result.str << "\n";
-		std::cout << "Value = " << result.num << "\n";
-		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n\n";
-
 		for (int i = 0; i < size; i++)
 		{
 			delete dp_tab[i];
@@ -383,6 +377,10 @@ class App {
 		}
 		delete dp_tab;
 		delete dp_traceback_tab;
+
+		std::cout << "Min path: " << result.str << "\n";
+		std::cout << "Value = " << result.num << "\n";
+		std::cout << "Execution time = " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms\n\n";
 
 		system("pause");
 	}
@@ -435,6 +433,83 @@ class App {
 
 	}
 
+	auto brute_force_test()
+	{
+		bool* vis = new bool[size];
+
+		for (int i = 0; i < size; i++)
+		{
+			vis[i] = false;
+		}
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		strint res = brute_step(0, vis, "", 0, strint("", INT_MAX));
+
+		auto stop = std::chrono::high_resolution_clock::now();
+
+		delete vis;
+
+		return stop - start;
+	}
+
+	auto branch_and_bound_test()
+	{
+		bool* vis = new bool[size];
+		for (int i = 0; i < size; i++)
+		{
+			vis[i] = false;
+		}
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		strint res = branch_step(0, vis, "", 0, strint("", INT_MAX));
+
+		auto stop = std::chrono::high_resolution_clock::now();
+
+		delete vis;
+
+		return stop - start;
+	}
+
+	auto dynamic_programming_test()
+	{
+		int** dp_tab = new int*[size];
+		unsigned char** dp_traceback_tab = new unsigned char*[size];
+
+
+		int num_of_masks = 1 << size;
+
+		for (int i = 0; i < size; i++)
+		{
+			dp_tab[i] = new int[num_of_masks];
+			dp_traceback_tab[i] = new unsigned char[num_of_masks];
+
+			for (int j = 0; j < num_of_masks; j++)
+			{
+				dp_tab[i][j] = -1;
+				dp_traceback_tab[i][j] = UCHAR_MAX;
+			}
+		}
+
+		auto start = std::chrono::high_resolution_clock::now();
+
+		dp_step(0x1, 0, dp_tab, dp_traceback_tab);
+
+		auto stop = std::chrono::high_resolution_clock::now();
+
+		for (int i = 0; i < size; i++)
+		{
+			delete dp_tab[i];
+			delete dp_traceback_tab[i];
+		}
+		delete dp_tab;
+		delete dp_traceback_tab;
+
+		return stop - start;
+	}
+
+
 
 public:
 	void run()
@@ -475,11 +550,94 @@ public:
 			}
 		}
 	}
+
 	void debug()
 	{
 		read_data_from_file("data4.txt");
 		branch_and_bound();
 		dynamic_programming();
+	}
+
+	void run_tests()
+	{
+		std::chrono::duration<double, std::milli> results[100];
+		
+		std::ofstream brute_res("brute_force.csv");
+		brute_res.imbue(std::locale("pl_PL.UTF8"));
+		brute_res.close();
+
+
+		for (int i = 2; i <= 12; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				generate_random_data(i);
+				results[j] = brute_force_test();
+			}
+
+			brute_res.open("brute_force.csv", std::ios::app);
+			brute_res << i << "; ";
+
+			for (int j = 0; j < 99; j++)
+			{
+				brute_res << results[j].count() << "; ";
+			}
+
+			brute_res << results[99].count() << "\n";
+			brute_res.close();
+		}
+
+		std::ofstream branch_res("branch_and_bound.csv");
+		branch_res.imbue(std::locale("pl_PL.UTF8"));
+		branch_res.close();
+
+
+		for (int i = 2; i <= 17; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				generate_random_data(i);
+				results[j] = branch_and_bound_test();
+			}
+
+			branch_res.open("branch_and_bound.csv", std::ios::app);
+			branch_res << i << "; ";
+
+			for (int j = 0; j < 99; j++)
+			{
+				branch_res << results[j].count() << "; ";
+			}
+
+			branch_res << results[99].count() << "\n";
+			branch_res.close();
+		}
+
+		std::ofstream dynamic_res("dynamic_programming.csv");
+		dynamic_res.imbue(std::locale("pl_PL.UTF8"));
+		dynamic_res.close();
+
+
+		for (int i = 2; i <= 23; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				generate_random_data(i);
+				results[j] = dynamic_programming_test();
+			}
+
+			dynamic_res.open("dynamic_programming.csv", std::ios::app);
+			dynamic_res << i << "; ";
+
+			for (int j = 0; j < 99; j++)
+			{
+				dynamic_res << results[j].count() << "; ";
+			}
+
+			dynamic_res << results[99].count() << "\n";
+			dynamic_res.close();
+		}
+
+
 	}
 };
 
