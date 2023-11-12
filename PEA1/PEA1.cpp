@@ -562,12 +562,14 @@ public:
 		std::chrono::duration<double, std::milli> results[100];
 
 		std::ofstream brute_res("brute_force.csv");
-		brute_res.imbue(std::locale("pl_PL.UTF8"));
 		brute_res.close();
 
+		std::cout << "Running brute force tests:\n";
 
 		for (int i = 3; i <= 12; i++)
 		{
+			std::cout << "Running for n = "<<i<<"...\n";
+
 			for (int j = 0; j < 100; j++)
 			{
 				generate_random_data(i);
@@ -587,12 +589,13 @@ public:
 		}
 
 		std::ofstream branch_res("branch_and_bound.csv");
-		branch_res.imbue(std::locale("pl_PL.UTF8"));
 		branch_res.close();
 
+		std::cout << "Running branch and bound tests:\n";
 
-		for (int i = 3; i <= 17; i++)
+		for (int i = 3; i <= 18; i++)
 		{
+			std::cout << "Running for n = " << i << "...\n";
 			for (int j = 0; j < 100; j++)
 			{
 				generate_random_data(i);
@@ -612,12 +615,13 @@ public:
 		}
 
 		std::ofstream dynamic_res("dynamic_programming.csv");
-		dynamic_res.imbue(std::locale("pl_PL.UTF8"));
 		dynamic_res.close();
 
+		std::cout << "Running dynamic programming tests:\n";
 
 		for (int i = 3; i <= 23; i++)
 		{
+			std::cout << "Running for n = " << i << "...\n";
 			for (int j = 0; j < 100; j++)
 			{
 				generate_random_data(i);
