@@ -3,7 +3,6 @@
 #include <string>
 #include <conio.h>
 #include <chrono>
-#include <bitset>
 
 struct strint
 {
@@ -567,7 +566,7 @@ public:
 		brute_res.close();
 
 
-		for (int i = 2; i <= 12; i++)
+		for (int i = 3; i <= 12; i++)
 		{
 			for (int j = 0; j < 100; j++)
 			{
@@ -592,7 +591,7 @@ public:
 		branch_res.close();
 
 
-		for (int i = 2; i <= 17; i++)
+		for (int i = 3; i <= 17; i++)
 		{
 			for (int j = 0; j < 100; j++)
 			{
@@ -617,7 +616,7 @@ public:
 		dynamic_res.close();
 
 
-		for (int i = 2; i <= 23; i++)
+		for (int i = 3; i <= 23; i++)
 		{
 			for (int j = 0; j < 100; j++)
 			{
